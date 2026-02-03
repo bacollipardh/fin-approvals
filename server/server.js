@@ -16,6 +16,8 @@ import { readEnvOrFile } from "./util/secrets.js";
 import { signJWT, compare, hash, requireAuth, requireRole } from "./auth.js";
 import { requiredRoleForAmount } from "./approvalLogic.js";
 import { normalizeNumbers } from "./normalize-mw.js";
+import { syncArticlesFromMssqlApi } from "./sync/articles.js";
+
 
 dotenv.config();
 
@@ -954,6 +956,23 @@ app.delete("/admin/buyer-sites/:id", requireAuth, requireRole("admin"), async (r
     res.status(500).json({ error: "server" });
   }
 });
+
+/** SYNC (MSSQL API -> Postgres) */
+app.post(
+  "/admin/sync/articles",
+  requireAuth,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const out = await syncArticlesFromMssqlApi(req);
+      res.json({ ok: true, ...out });
+    } catch (e) {
+      console.error("SYNC_ARTICLES_ERR:", e);
+      res.status(500).json({ ok: false, error: String(e?.message || e) });
+    }
+  }
+);
+
 
 /** USERS (create/list/edit/delete) */
 app.post("/admin/users", requireAuth, requireRole("admin"), async (req, res) => {

@@ -4,12 +4,10 @@ services:
     environment:
       POSTGRES_DB: lejimet
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_PASSWORD: postgres
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
-    secrets:
-      - postgres_password
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d lejimet"]
       interval: 5s
@@ -21,34 +19,31 @@ services:
       context: ./server
     environment:
       NODE_ENV: production
-      PORT: 8080
+      PORT: "8080"
       TRUST_PROXY: "1"
-      API_PREFIX: /api
-      PGHOST: db
+      API_PREFIX: "/api"
+      PGHOST: "db"
       PGPORT: "5432"
-      PGDATABASE: lejimet
-      PGUSER: postgres
-      PGPASSWORD_FILE: /run/secrets/postgres_password
-      JWT_SECRET_FILE: /run/secrets/jwt_secret
-      REFRESH_PEPPER_FILE: /run/secrets/refresh_pepper
-      SMTP_PASS_FILE: /run/secrets/smtp_pass
-      UPLOAD_DIR: /data/uploads
+      PGDATABASE: "lejimet"
+      PGUSER: "postgres"
+      PGPASSWORD: "postgres"
+      JWT_SECRET: "devsecret"
+      REFRESH_TOKEN_PEPPER: "devpepper"
+      SMTP_PASS: ""
+      UPLOAD_DIR: "/data/uploads"
       COOKIE_SECURE: "false"
-      # IMPORTANT: set this in your host .env for production domain(s)
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost}
-      APP_URL: ${APP_URL:-http://localhost}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      ALLOWED_ORIGINS: ""
+      APP_URL: ""
+      PUBLIC_API_URL: ""
       RUN_MIGRATIONS: "true"
+      MSSQL_API_BASE_URL: "http://10.10.12.85:9000"
     depends_on:
       db:
         condition: service_healthy
-    secrets:
-      - postgres_password
-      - jwt_secret
-      - refresh_pepper
-      - smtp_pass
     volumes:
       - uploads:/data/uploads
+    ports:
+      - "8080:8080"
 
   web:
     build:
@@ -58,18 +53,8 @@ services:
     depends_on:
       - api
     ports:
-      - "${HTTP_PORT:-80}:80"
+      - "${HTTP_PORT:-8088}:80"
 
 volumes:
   db_data:
   uploads:
-
-secrets:
-  postgres_password:
-    file: ./secrets/postgres_password.txt
-  jwt_secret:
-    file: ./secrets/jwt_secret.txt
-  refresh_pepper:
-    file: ./secrets/refresh_pepper.txt
-  smtp_pass:
-    file: ./secrets/smtp_pass.txt
