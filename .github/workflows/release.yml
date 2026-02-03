@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build_push_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags
+        id: vars
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          REPO_LC=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "API_IMAGE=${{ env.REGISTRY }}/${REPO_LC}-api:$TAG" >> $GITHUB_OUTPUT
+          echo "WEB_IMAGE=${{ env.REGISTRY }}/${REPO_LC}-web:$TAG" >> $GITHUB_OUTPUT
+          echo "API_LATEST=${{ env.REGISTRY }}/${REPO_LC}-api:latest" >> $GITHUB_OUTPUT
+          echo "WEB_LATEST=${{ env.REGISTRY }}/${REPO_LC}-web:latest" >> $GITHUB_OUTPUT
+
+      - name: Build & push API
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.vars.outputs.API_IMAGE }}
+            ${{ steps.vars.outputs.API_LATEST }}
+
+      - name: Build & push WEB
+        uses: docker/build-push-action@v6
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.vars.outputs.WEB_IMAGE }}
+            ${{ steps.vars.outputs.WEB_LATEST }}
+
+      - name: Trivy scan API image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.vars.outputs.API_IMAGE }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+  deploy_prod:
+    needs: build_push_scan
+    runs-on: ubuntu-latest
+    if: ${{ secrets.PROD_HOST != '' && secrets.PROD_USER != '' && secrets.PROD_SSH_KEY != '' && secrets.PROD_PATH != '' }}
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.PROD_PATH }}"
+            REPO_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            export API_IMAGE="${{ env.REGISTRY }}/${REPO_LC}-api:${{ github.ref_name }}"
+            export WEB_IMAGE="${{ env.REGISTRY }}/${REPO_LC}-web:${{ github.ref_name }}"
+            docker compose -f docker-compose.deploy.yml pull
+            docker compose -f docker-compose.deploy.yml up -d
+            docker image prune -f
