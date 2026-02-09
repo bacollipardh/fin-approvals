@@ -1,0 +1,46 @@
+import { q } from "../db.js";
+
+function requireEnv(name) {
+  const v = (process.env[name] || "").trim();
+  if (!v) throw new Error(`Missing env: ${name}`);
+  return v;
+}
+
+export async function syncDivisionsFromMssqlApi() {
+  const base = requireEnv("MSSQL_API_BASE_URL").replace(/\/$/, "");
+  const url = `${base}/divisions?limit=5000&offset=0`;
+
+  const r = await fetch(url, { headers: { "Accept": "application/json" } });
+  if (!r.ok) throw new Error(`MSSQL API ${r.status} on ${url}`);
+  const rows = await r.json();
+
+  const cleaned = (Array.isArray(rows) ? rows : [])
+    .map((x) => ({
+      id: Number(x.id),
+      name: String(x.name || "").trim(),
+    }))
+    .filter((x) => Number.isFinite(x.id) && x.id > 0 && x.name);
+
+  const before = await q("SELECT COUNT(*)::int AS c FROM divisions");
+  const beforeCount = before.rows?.[0]?.c || 0;
+
+  // upsert by id
+  let upserted = 0;
+  for (const d of cleaned) {
+    await q(
+      `INSERT INTO divisions(id, name)
+       VALUES($1,$2)
+       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name`,
+      [d.id, d.name]
+    );
+    upserted += 1;
+  }
+
+  // optional: fshi divizionet qe s’ekzistojne ma ne MSSQL (kujdes!)
+  // await q(`DELETE FROM divisions WHERE id NOT IN (${cleaned.map((_,i)=>`$${i+1}`).join(",")})`, cleaned.map(x=>x.id));
+
+  const after = await q("SELECT COUNT(*)::int AS c FROM divisions");
+  const afterCount = after.rows?.[0]?.c || 0;
+
+  return { ok: true, fetched: rows.length || 0, upserted, before: beforeCount, after: afterCount };
+}

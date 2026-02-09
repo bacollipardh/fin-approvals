@@ -1,0 +1,7 @@
+﻿services:
+  db:
+    secrets: []
+  api:
+    secrets: []
+    ports:
+      - "8080:8080"

@@ -17,6 +17,8 @@ import { signJWT, compare, hash, requireAuth, requireRole } from "./auth.js";
 import { requiredRoleForAmount } from "./approvalLogic.js";
 import { normalizeNumbers } from "./normalize-mw.js";
 import { syncArticlesFromMssqlApi } from "./sync/articles.js";
+import { syncDivisionsFromMssqlApi } from "./sync/divisions.js";
+
 
 
 dotenv.config();
@@ -778,9 +780,22 @@ app.delete("/admin/divisions/:id", requireAuth, requireRole("admin"), async (req
 
 /** ARTICLES */
 app.get("/admin/articles", requireAuth, requireRole("admin"), async (_req, res) => {
-  const r = await q("SELECT id,sku,name,sell_price,division_id FROM articles ORDER BY id");
+  const r = await q(`
+    SELECT
+      id,
+      sku,
+      name,
+      sell_price,
+      division_id,
+      special_rabat,
+      special_rabat_from,
+      special_rabat_to
+    FROM articles
+    ORDER BY id
+  `);
   res.json(r.rows);
 });
+
 app.post("/admin/articles", requireAuth, requireRole("admin"), async (req, res) => {
   const sku = (req.body?.sku || "").trim();
   const name = (req.body?.name || "").trim();
@@ -972,6 +987,15 @@ app.post(
     }
   }
 );
+/** SYNC (MSSQL API -> Postgres) 	DIVISIONS*/
+app.post("/admin/sync/divisions", requireAuth, requireRole("admin"), async (_req, res) => {
+  try {
+    const out = await syncDivisionsFromMssqlApi();
+    res.json(out);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e?.message || e) });
+  }
+});
 
 
 /** USERS (create/list/edit/delete) */
@@ -1074,7 +1098,20 @@ app.get("/meta", requireAuth, async (req, res) => {
   const [buyers, sites, articles, me] = await Promise.all([
     q("SELECT id,code,name FROM buyers ORDER BY code"),
     q("SELECT id,buyer_id,site_code,site_name FROM buyer_sites ORDER BY site_code"),
-    q("SELECT id,sku,name,sell_price FROM articles ORDER BY sku"),
+    q(`
+  SELECT
+    id,
+    sku,
+    name,
+    sell_price,
+    division_id,
+    special_rabat,
+    special_rabat_from,
+    special_rabat_to
+  FROM articles
+  ORDER BY sku
+`),
+
     q("SELECT u.id,u.first_name,u.last_name,u.pda_number,u.division_id,d.name as division_name FROM users u LEFT JOIN divisions d ON d.id=u.division_id WHERE u.id=$1", [req.user.id]),
   ]);
   res.json({ buyers: buyers.rows, sites: sites.rows, articles: articles.rows, me: me.rows[0] });
