@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../api";
 
 function decodeJwt() {
@@ -88,6 +89,24 @@ export default function Admin() {
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
   const [banner, setBanner] = useState("");
+  const [activeModule, setActiveModule] = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { module } = useParams();
+
+  const validModules = useMemo(() => new Set(["dashboard", "divisions", "articles", "buyers", "sites", "users"]), []);
+
+  const resolveModule = (value) => {
+    const normalized = (value || "").toLowerCase();
+    return validModules.has(normalized) ? normalized : "dashboard";
+  };
+
+  const goToModule = (nextModule) => {
+    const resolved = resolveModule(nextModule);
+    setActiveModule(resolved);
+    localStorage.setItem("lastAdminModule", resolved);
+    navigate(resolved === "dashboard" ? "/admin" : `/admin/${resolved}`);
+  };
 
   const [divName, setDivName] = useState("");
   const [article, setArticle] = useState({ sku: "", name: "", sell_price: "" });
@@ -182,6 +201,29 @@ export default function Admin() {
   const buyerPager = useLocalPager(buyers, 20);
   const sitePager = useLocalPager(sites, 20);
   const userPager = useLocalPager(users, 20);
+
+  const moduleCards = [
+    { key: "divisions", label: "Divizione", count: divisions.length, desc: "Menaxho divizionet dhe default TL" },
+    { key: "articles", label: "Artikuj", count: articles.length, desc: "Artikujt dhe çmimet/rabatet" },
+    { key: "buyers", label: "Blerës", count: buyers.length, desc: "Partnerët blerës" },
+    { key: "sites", label: "Objekte", count: sites.length, desc: "Objektet sipas blerësit" },
+    { key: "users", label: "Përdorues", count: users.length, desc: "Llogaritë dhe rolet" },
+  ];
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const requested = module || searchParams.get("module") || localStorage.getItem("lastAdminModule") || "dashboard";
+    const resolved = resolveModule(requested);
+    setActiveModule(resolved);
+
+    const canonicalPath = resolved === "dashboard" ? "/admin" : `/admin/${resolved}`;
+    if ((location.pathname !== canonicalPath || searchParams.get("module")) && !module) {
+      navigate(canonicalPath, { replace: true });
+      return;
+    }
+
+    localStorage.setItem("lastAdminModule", resolved);
+  }, [module, location.pathname, location.search, navigate]);
 
   const startEditDivision = (d) => {
     setEditingDivisionId(d.id);
@@ -342,7 +384,47 @@ export default function Admin() {
 
         {banner && <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded">{banner}</div>}
 
+        <section className="bg-white p-3 rounded-2xl shadow space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className={`px-3 py-2 rounded-xl text-sm ${activeModule === "dashboard" ? "bg-black text-white" : "border hover:bg-gray-50"}`}
+              onClick={() => goToModule("dashboard")}
+            >
+              Dashboard
+            </button>
+            {moduleCards.map((m) => (
+              <button
+                key={m.key}
+                className={`px-3 py-2 rounded-xl text-sm ${activeModule === m.key ? "bg-black text-white" : "border hover:bg-gray-50"}`}
+                onClick={() => goToModule(m.key)}
+              >
+                {m.label}
+              </button>
+            ))}
+            <button className="ml-auto text-sm underline" onClick={reloadAll}>
+              Rifresko të dhënat
+            </button>
+          </div>
+        </section>
+
+        {activeModule === "dashboard" && (
+          <section className="grid md:grid-cols-2 xl:grid-cols-5 gap-3">
+            {moduleCards.map((m) => (
+              <button
+                key={m.key}
+                onClick={() => goToModule(m.key)}
+                className="text-left bg-white p-4 rounded-2xl shadow border hover:border-black/30 transition"
+              >
+                <div className="text-xs uppercase tracking-wide text-gray-500">{m.label}</div>
+                <div className="text-3xl font-semibold mt-1">{m.count}</div>
+                <div className="text-sm text-gray-600 mt-1">{m.desc}</div>
+              </button>
+            ))}
+          </section>
+        )}
+
         {/* ================= Divizioni ================= */}
+        {activeModule === "divisions" && (
         <section className="bg-white p-4 rounded-2xl shadow space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Divizioni</h2>
@@ -455,8 +537,10 @@ export default function Admin() {
             </table>
           </div>
         </section>
+        )}
 
         {/* ================= Artikull ================= */}
+        {activeModule === "articles" && (
         <section className="bg-white p-4 rounded-2xl shadow space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Artikuj</h2>
@@ -580,16 +664,19 @@ export default function Admin() {
             </table>
           </div>
         </section>
+        )}
 
         {/* ================= Blerës & Objekte ================= */}
+        {(activeModule === "buyers" || activeModule === "sites") && (
         <section className="bg-white p-4 rounded-2xl shadow space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Blerës & Objekte</h2>
+            <h2 className="font-semibold">{activeModule === "buyers" ? "Blerës" : "Objekte"}</h2>
             <button className="text-sm underline" onClick={reloadAll}>
               Rifresko
             </button>
           </div>
 
+          {activeModule === "buyers" && (
           <div className="grid md:grid-cols-3 gap-2">
             <input className="border p-2 rounded" placeholder="Kodi (p.sh. 0012)" value={buyer.code} onChange={(e) => setBuyer((b) => ({ ...b, code: e.target.value }))} />
             <input className="border p-2 rounded" placeholder="Emri" value={buyer.name} onChange={(e) => setBuyer((b) => ({ ...b, name: e.target.value }))} />
@@ -609,7 +696,9 @@ export default function Admin() {
               Ruaj Blerësin
             </button>
           </div>
+          )}
 
+          {activeModule === "sites" && (
           <div className="grid md:grid-cols-4 gap-2">
             <select className="border p-2 rounded" value={site.buyer_id} onChange={(e) => setSite((s) => ({ ...s, buyer_id: e.target.value }))}>
               <option value="">Zgjedh blerësin</option>
@@ -641,8 +730,10 @@ export default function Admin() {
               Ruaj Objektin
             </button>
           </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-4">
+            {activeModule === "buyers" && (
             <div className="overflow-x-auto">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium">Blerësit</h3>
@@ -701,7 +792,9 @@ export default function Admin() {
                 </tbody>
               </table>
             </div>
+            )}
 
+            {activeModule === "sites" && (
             <div className="overflow-x-auto">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium">Objektet</h3>
@@ -786,10 +879,13 @@ export default function Admin() {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </section>
+        )}
 
         {/* ================= Përdorues ================= */}
+        {activeModule === "users" && (
         <section className="bg-white p-4 rounded-2xl shadow space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Përdorues</h2>
@@ -1051,13 +1147,11 @@ export default function Admin() {
             </table>
           </div>
         </section>
+        )}
       </div>
     </div>
   );
 }
-
-
-
 
 
 

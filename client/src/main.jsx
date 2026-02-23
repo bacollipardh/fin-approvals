@@ -22,6 +22,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="/agent" element={<AuthRoute roles={['agent']}><Agent /></AuthRoute>} />
             <Route path="/approvals" element={<AuthRoute roles={['team_lead', 'division_manager', 'sales_director']}><Approvals /></AuthRoute>} />
             <Route path="/admin" element={<AuthRoute roles={['admin']}><Admin /></AuthRoute>} />
+            <Route path="/admin/:module" element={<AuthRoute roles={['admin']}><Admin /></AuthRoute>} />
             <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
     </BrowserRouter>
