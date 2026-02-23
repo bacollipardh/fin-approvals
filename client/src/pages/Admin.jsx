@@ -47,13 +47,23 @@ function PagerControls({ pager }) {
   if (!pager || pager.total <= pager.per) return null;
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
-      <button className="px-3 py-1 rounded border" disabled={pager.page <= 1} onClick={() => pager.setPage(pager.page - 1)}>
+      <button
+        className="px-3 py-1 rounded border"
+        disabled={pager.page <= 1}
+        onClick={() => pager.setPage(pager.page - 1)}
+      >
         Prev
       </button>
-      <button className="px-3 py-1 rounded border" disabled={pager.page >= pager.pages} onClick={() => pager.setPage(pager.page + 1)}>
+      <button
+        className="px-3 py-1 rounded border"
+        disabled={pager.page >= pager.pages}
+        onClick={() => pager.setPage(pager.page + 1)}
+      >
         Next
       </button>
-      <div className="text-gray-600">Page {pager.page} / {pager.pages} · Total {pager.total}</div>
+      <div className="text-gray-600">
+        Page {pager.page} / {pager.pages} · Total {pager.total}
+      </div>
       <select
         className="border rounded px-2 py-1"
         value={pager.per}
@@ -139,7 +149,12 @@ export default function Admin() {
   const [editDivision, setEditDivision] = useState({ name: "", default_team_leader_id: "" });
 
   const [editingArticleId, setEditingArticleId] = useState(null);
-  const [editArticle, setEditArticle] = useState({ sku: "", name: "", sell_price: "", division_id: "" });
+  const [editArticle, setEditArticle] = useState({
+    sku: "",
+    name: "",
+    sell_price: "",
+    division_id: "",
+  });
 
   const [editingBuyerId, setEditingBuyerId] = useState(null);
   const [editBuyer, setEditBuyer] = useState({ code: "", name: "" });
@@ -259,7 +274,12 @@ export default function Admin() {
 
   const startEditArticle = (a) => {
     setEditingArticleId(a.id);
-    setEditArticle({ sku: a.sku || "", name: a.name || "", sell_price: a.sell_price ?? "", division_id: a.division_id ?? "" });
+    setEditArticle({
+      sku: a.sku || "",
+      name: a.name || "",
+      sell_price: a.sell_price ?? "",
+      division_id: a.division_id ?? "",
+    });
   };
 
   const saveArticle = async () => {
@@ -302,7 +322,10 @@ export default function Admin() {
   const saveBuyer = async () => {
     if (!editingBuyerId) return;
     try {
-      await api.put(`/admin/buyers/${editingBuyerId}`, { code: (editBuyer.code || "").trim(), name: (editBuyer.name || "").trim() });
+      await api.put(`/admin/buyers/${editingBuyerId}`, {
+        code: (editBuyer.code || "").trim(),
+        name: (editBuyer.name || "").trim(),
+      });
       setEditingBuyerId(null);
       setEditBuyer({ code: "", name: "" });
       await reloadAll();
@@ -367,7 +390,9 @@ export default function Admin() {
     return (
       <div className="p-6">
         <h3 className="text-lg font-semibold">Admin Panel</h3>
-        <p className="text-red-600 mt-1">Kjo faqe kërkon rol <b>admin</b>. Dil dhe hyr me llogari admin.</p>
+        <p className="text-red-600 mt-1">
+          Kjo faqe kërkon rol <b>admin</b>. Dil dhe hyr me llogari admin.
+        </p>
       </div>
     );
   }
@@ -382,7 +407,11 @@ export default function Admin() {
           </a>
         </header>
 
-        {banner && <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded">{banner}</div>}
+        {banner && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded">
+            {banner}
+          </div>
+        )}
 
         <section className="bg-white p-3 rounded-2xl shadow space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -472,8 +501,7 @@ export default function Admin() {
               <tbody>
                 {divPager.rows.map((d) => (
                   <tr key={d.id} className="odd:bg-gray-50">
-                    <td className="p-2">{d.id}
-</td>
+                    <td className="p-2">{d.id}</td>
                     <td className="p-2">
                       {editingDivisionId === d.id ? (
                         <input
@@ -490,9 +518,7 @@ export default function Admin() {
                         <select
                           className="border p-2 rounded w-full"
                           value={editDivision.default_team_leader_id ?? ""}
-                          onChange={(e) =>
-                            setEditDivision((x) => ({ ...x, default_team_leader_id: e.target.value }))
-                          }
+                          onChange={(e) => setEditDivision((x) => ({ ...x, default_team_leader_id: e.target.value }))}
                         >
                           <option value="">(asnjë)</option>
                           {users
@@ -550,9 +576,24 @@ export default function Admin() {
           </div>
 
           <div className="grid md:grid-cols-4 gap-2">
-            <input className="border p-2 rounded" placeholder="SKU" value={article.sku} onChange={(e) => setArticle((a) => ({ ...a, sku: e.target.value }))} />
-            <input className="border p-2 rounded" placeholder="Emri" value={article.name} onChange={(e) => setArticle((a) => ({ ...a, name: e.target.value }))} />
-            <input className="border p-2 rounded" placeholder={"\u00C7mimi"} value={article.sell_price} onChange={(e) => setArticle((a) => ({ ...a, sell_price: e.target.value }))} />
+            <input
+              className="border p-2 rounded"
+              placeholder="SKU"
+              value={article.sku}
+              onChange={(e) => setArticle((a) => ({ ...a, sku: e.target.value }))}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder="Emri"
+              value={article.name}
+              onChange={(e) => setArticle((a) => ({ ...a, name: e.target.value }))}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder={"Çmimi"}
+              value={article.sell_price}
+              onChange={(e) => setArticle((a) => ({ ...a, sell_price: e.target.value }))}
+            />
             <button
               className="bg-black text-white rounded"
               onClick={async () => {
@@ -583,54 +624,85 @@ export default function Admin() {
                   <th className="p-2">ID</th>
                   <th className="p-2">SKU</th>
                   <th className="p-2">Emri</th>
-<th className="p-2">Divizioni</th>
-                  <th className="p-2">{"\u00C7mimi"}</th>
+                  <th className="p-2">Divizioni</th>
+                  <th className="p-2">Çmimi</th>
+                  <th className="p-2">Rabat special</th>
+                  <th className="p-2">Prej</th>
+                  <th className="p-2">Deri</th>
                   <th className="p-2">Veprim</th>
                 </tr>
               </thead>
+
               <tbody>
                 {artPager.rows.map((a) => (
                   <tr key={a.id} className="odd:bg-gray-50">
                     <td className="p-2">{a.id}</td>
+
                     <td className="p-2">
                       {editingArticleId === a.id ? (
-                        <input className="border p-1 rounded w-full" value={editArticle.sku} onChange={(e) => setEditArticle((x) => ({ ...x, sku: e.target.value }))} />
+                        <input
+                          className="border p-1 rounded w-full"
+                          value={editArticle.sku}
+                          onChange={(e) => setEditArticle((x) => ({ ...x, sku: e.target.value }))}
+                        />
                       ) : (
                         a.sku
                       )}
                     </td>
+
                     <td className="p-2">
                       {editingArticleId === a.id ? (
-                        <input className="border p-1 rounded w-full" value={editArticle.name} onChange={(e) => setEditArticle((x) => ({ ...x, name: e.target.value }))} />
+                        <input
+                          className="border p-1 rounded w-full"
+                          value={editArticle.name}
+                          onChange={(e) => setEditArticle((x) => ({ ...x, name: e.target.value }))}
+                        />
                       ) : (
                         a.name
                       )}
                     </td>
-<td className="p-2">
-  {editingArticleId === a.id ? (
-    <select
-      className="border p-1 rounded w-full"
-      value={editArticle.division_id ?? ""}
-      onChange={(e) => setEditArticle((x) => ({ ...x, division_id: e.target.value }))}
-    >
-      <option value="">--</option>
-      {(divisions || []).map((d) => (
-        <option key={d.id} value={d.id}>
-          {d.name}
-        </option>
-      ))}
-    </select>
-  ) : (
-    (a.division_name ?? divisions.find((d) => d.id === a.division_id)?.name ?? "")
-  )}
-</td>
+
                     <td className="p-2">
                       {editingArticleId === a.id ? (
-                        <input className="border p-1 rounded w-full" value={editArticle.sell_price} onChange={(e) => setEditArticle((x) => ({ ...x, sell_price: e.target.value }))} />
+                        <select
+                          className="border p-1 rounded w-full"
+                          value={editArticle.division_id ?? ""}
+                          onChange={(e) => setEditArticle((x) => ({ ...x, division_id: e.target.value }))}
+                        >
+                          <option value="">--</option>
+                          {(divisions || []).map((d) => (
+                            <option key={d.id} value={d.id}>
+                              {d.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        a.division_name ?? divisions.find((d) => d.id === a.division_id)?.name ?? ""
+                      )}
+                    </td>
+
+                    <td className="p-2">
+                      {editingArticleId === a.id ? (
+                        <input
+                          className="border p-1 rounded w-full"
+                          value={editArticle.sell_price}
+                          onChange={(e) => setEditArticle((x) => ({ ...x, sell_price: e.target.value }))}
+                        />
                       ) : (
                         String.fromCharCode(8364) + (a.sell_price ?? "")
                       )}
                     </td>
+
+                    <td className="p-2">{Number(a.special_rabat ?? 0).toFixed(2)}</td>
+
+                    <td className="p-2">
+                      {a.special_rabat_from ? new Date(a.special_rabat_from).toLocaleString() : "-"}
+                    </td>
+
+                    <td className="p-2">
+                      {a.special_rabat_to ? new Date(a.special_rabat_to).toLocaleString() : "-"}
+                    </td>
+
                     <td className="p-2">
                       {editingArticleId === a.id ? (
                         <div className="flex gap-2">
@@ -678,8 +750,18 @@ export default function Admin() {
 
           {activeModule === "buyers" && (
           <div className="grid md:grid-cols-3 gap-2">
-            <input className="border p-2 rounded" placeholder="Kodi (p.sh. 0012)" value={buyer.code} onChange={(e) => setBuyer((b) => ({ ...b, code: e.target.value }))} />
-            <input className="border p-2 rounded" placeholder="Emri" value={buyer.name} onChange={(e) => setBuyer((b) => ({ ...b, name: e.target.value }))} />
+            <input
+              className="border p-2 rounded"
+              placeholder="Kodi (p.sh. 0012)"
+              value={buyer.code}
+              onChange={(e) => setBuyer((b) => ({ ...b, code: e.target.value }))}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder="Emri"
+              value={buyer.name}
+              onChange={(e) => setBuyer((b) => ({ ...b, name: e.target.value }))}
+            />
             <button
               className="bg-black text-white rounded"
               onClick={async () => {
@@ -700,7 +782,11 @@ export default function Admin() {
 
           {activeModule === "sites" && (
           <div className="grid md:grid-cols-4 gap-2">
-            <select className="border p-2 rounded" value={site.buyer_id} onChange={(e) => setSite((s) => ({ ...s, buyer_id: e.target.value }))}>
+            <select
+              className="border p-2 rounded"
+              value={site.buyer_id}
+              onChange={(e) => setSite((s) => ({ ...s, buyer_id: e.target.value }))}
+            >
               <option value="">Zgjedh blerësin</option>
               {buyers.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -708,8 +794,18 @@ export default function Admin() {
                 </option>
               ))}
             </select>
-            <input className="border p-2 rounded" placeholder="Kodi i objektit (p.sh. 12)" value={site.site_code} onChange={(e) => setSite((s) => ({ ...s, site_code: e.target.value }))} />
-            <input className="border p-2 rounded" placeholder="Emri i objektit" value={site.site_name} onChange={(e) => setSite((s) => ({ ...s, site_name: e.target.value }))} />
+            <input
+              className="border p-2 rounded"
+              placeholder="Kodi i objektit (p.sh. 12)"
+              value={site.site_code}
+              onChange={(e) => setSite((s) => ({ ...s, site_code: e.target.value }))}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder="Emri i objektit"
+              value={site.site_name}
+              onChange={(e) => setSite((s) => ({ ...s, site_name: e.target.value }))}
+            />
             <button
               className="bg-black text-white rounded"
               onClick={async () => {
@@ -754,14 +850,22 @@ export default function Admin() {
                       <td className="p-2">{b.id}</td>
                       <td className="p-2">
                         {editingBuyerId === b.id ? (
-                          <input className="border p-1 rounded w-28" value={editBuyer.code} onChange={(e) => setEditBuyer((s) => ({ ...s, code: e.target.value }))} />
+                          <input
+                            className="border p-1 rounded w-28"
+                            value={editBuyer.code}
+                            onChange={(e) => setEditBuyer((s) => ({ ...s, code: e.target.value }))}
+                          />
                         ) : (
                           b.code
                         )}
                       </td>
                       <td className="p-2">
                         {editingBuyerId === b.id ? (
-                          <input className="border p-1 rounded w-64" value={editBuyer.name} onChange={(e) => setEditBuyer((s) => ({ ...s, name: e.target.value }))} />
+                          <input
+                            className="border p-1 rounded w-64"
+                            value={editBuyer.name}
+                            onChange={(e) => setEditBuyer((s) => ({ ...s, name: e.target.value }))}
+                          />
                         ) : (
                           b.name
                         )}
@@ -895,18 +999,47 @@ export default function Admin() {
           </div>
 
           <div className="grid md:grid-cols-8 gap-2">
-            <input className="border p-2 rounded" placeholder="Emri" value={createUser.first_name} onChange={(e) => setCreateUser((u) => ({ ...u, first_name: e.target.value }))} />
-            <input className="border p-2 rounded" placeholder="Mbiemri" value={createUser.last_name} onChange={(e) => setCreateUser((u) => ({ ...u, last_name: e.target.value }))} />
-            <input className="border p-2 rounded" placeholder="Email" value={createUser.email} onChange={(e) => setCreateUser((u) => ({ ...u, email: e.target.value }))} />
-            <input className="border p-2 rounded" placeholder="Password" type="password" value={createUser.password} onChange={(e) => setCreateUser((u) => ({ ...u, password: e.target.value }))} />
-            <select className="border p-2 rounded" value={createUser.role} onChange={(e) => setCreateUser((u) => ({ ...u, role: e.target.value }))}>
+            <input
+              className="border p-2 rounded"
+              placeholder="Emri"
+              value={createUser.first_name}
+              onChange={(e) => setCreateUser((u) => ({ ...u, first_name: e.target.value }))}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder="Mbiemri"
+              value={createUser.last_name}
+              onChange={(e) => setCreateUser((u) => ({ ...u, last_name: e.target.value }))}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder="Email"
+              value={createUser.email}
+              onChange={(e) => setCreateUser((u) => ({ ...u, email: e.target.value }))}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder="Password"
+              type="password"
+              value={createUser.password}
+              onChange={(e) => setCreateUser((u) => ({ ...u, password: e.target.value }))}
+            />
+            <select
+              className="border p-2 rounded"
+              value={createUser.role}
+              onChange={(e) => setCreateUser((u) => ({ ...u, role: e.target.value }))}
+            >
               {["agent", "team_lead", "division_manager", "sales_director", "admin"].map((r) => (
                 <option key={r} value={r}>
                   {r}
                 </option>
               ))}
             </select>
-            <select className="border p-2 rounded" value={createUser.division_id} onChange={(e) => setCreateUser((u) => ({ ...u, division_id: e.target.value }))}>
+            <select
+              className="border p-2 rounded"
+              value={createUser.division_id}
+              onChange={(e) => setCreateUser((u) => ({ ...u, division_id: e.target.value }))}
+            >
               <option value="">Divizioni (ops.)</option>
               {divisions.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -914,6 +1047,7 @@ export default function Admin() {
                 </option>
               ))}
             </select>
+
             {createUser.role === "agent" ? (
               <div>
                 <label className="text-sm">Team Leader</label>
@@ -935,11 +1069,13 @@ export default function Admin() {
             ) : (
               <div />
             )}
+
             <button
               className="bg-black text-white rounded"
               onClick={async () => {
                 try {
-                  if (!createUser.email.trim() || !createUser.password.trim()) return alert("Email dhe password janë të detyrueshme.");
+                  if (!createUser.email.trim() || !createUser.password.trim())
+                    return alert("Email dhe password janë të detyrueshme.");
                   await api.post("/admin/users", {
                     first_name: createUser.first_name,
                     last_name: createUser.last_name,
@@ -950,7 +1086,16 @@ export default function Admin() {
                     pda_number: createUser.pda_number,
                     team_leader_id: toNumOrNull(createUser.team_leader_id),
                   });
-                  setCreateUser({ first_name: "", last_name: "", email: "", password: "", role: "agent", division_id: "", pda_number: "", team_leader_id: "" });
+                  setCreateUser({
+                    first_name: "",
+                    last_name: "",
+                    email: "",
+                    password: "",
+                    role: "agent",
+                    division_id: "",
+                    pda_number: "",
+                    team_leader_id: "",
+                  });
                   await reloadAll();
                 } catch (e) {
                   const msg = e?.response?.data?.error || "Gabim gjatë krijimit.";
@@ -986,23 +1131,56 @@ export default function Admin() {
               <tbody>
                 {userPager.rows.map((u) => {
                   const isEdit = editingId === u.id;
-                  const divLabel = u.division_name || divisions.find((d) => d.id === u.division_id)?.name || "";
+                  const divLabel =
+                    u.division_name || divisions.find((d) => d.id === u.division_id)?.name || "";
 
                   return (
                     <tr key={u.id} className="odd:bg-gray-50 align-top">
                       <td className="p-2">{u.id}</td>
-                      <td className="p-2">
-                        {isEdit ? <input className="border p-1 rounded w-32" value={editUser.first_name} onChange={(e) => setEditUser((s) => ({ ...s, first_name: e.target.value }))} /> : u.first_name}
-                      </td>
-                      <td className="p-2">
-                        {isEdit ? <input className="border p-1 rounded w-32" value={editUser.last_name} onChange={(e) => setEditUser((s) => ({ ...s, last_name: e.target.value }))} /> : u.last_name}
-                      </td>
-                      <td className="p-2">
-                        {isEdit ? <input className="border p-1 rounded w-56" value={editUser.email} onChange={(e) => setEditUser((s) => ({ ...s, email: e.target.value }))} /> : u.email}
-                      </td>
+
                       <td className="p-2">
                         {isEdit ? (
-                          <select className="border p-1 rounded" value={editUser.role} onChange={(e) => setEditUser((s) => ({ ...s, role: e.target.value }))}>
+                          <input
+                            className="border p-1 rounded w-32"
+                            value={editUser.first_name}
+                            onChange={(e) => setEditUser((s) => ({ ...s, first_name: e.target.value }))}
+                          />
+                        ) : (
+                          u.first_name
+                        )}
+                      </td>
+
+                      <td className="p-2">
+                        {isEdit ? (
+                          <input
+                            className="border p-1 rounded w-32"
+                            value={editUser.last_name}
+                            onChange={(e) => setEditUser((s) => ({ ...s, last_name: e.target.value }))}
+                          />
+                        ) : (
+                          u.last_name
+                        )}
+                      </td>
+
+                      <td className="p-2">
+                        {isEdit ? (
+                          <input
+                            className="border p-1 rounded w-56"
+                            value={editUser.email}
+                            onChange={(e) => setEditUser((s) => ({ ...s, email: e.target.value }))}
+                          />
+                        ) : (
+                          u.email
+                        )}
+                      </td>
+
+                      <td className="p-2">
+                        {isEdit ? (
+                          <select
+                            className="border p-1 rounded"
+                            value={editUser.role}
+                            onChange={(e) => setEditUser((s) => ({ ...s, role: e.target.value }))}
+                          >
                             {["agent", "team_lead", "division_manager", "sales_director", "admin"].map((r) => (
                               <option key={r} value={r}>
                                 {r}
@@ -1013,9 +1191,14 @@ export default function Admin() {
                           u.role
                         )}
                       </td>
+
                       <td className="p-2">
                         {isEdit ? (
-                          <select className="border p-1 rounded" value={editUser.division_id ?? ""} onChange={(e) => setEditUser((s) => ({ ...s, division_id: e.target.value }))}>
+                          <select
+                            className="border p-1 rounded"
+                            value={editUser.division_id ?? ""}
+                            onChange={(e) => setEditUser((s) => ({ ...s, division_id: e.target.value }))}
+                          >
                             <option value="">(asnjë)</option>
                             {divisions.map((d) => (
                               <option key={d.id} value={d.id}>
@@ -1027,43 +1210,59 @@ export default function Admin() {
                           u.division_id ? `${u.division_id}${divLabel ? ` - ${divLabel}` : ""}` : ""
                         )}
                       </td>
-                      
-<td className="p-2">
-  {isEdit && editUser.role === "agent" ? (
-    <select
-      className="border p-1 rounded"
-      value={editUser.team_leader_id ?? ""}
-      onChange={(e) => setEditUser((s) => ({ ...s, team_leader_id: e.target.value }))}
-    >
-      <option value="">(auto/fallback)</option>
-      {users
-        .filter(
-          (x) =>
-            x.role === "team_lead" &&
-            String(x.division_id ?? "") === String(editUser.division_id ?? "")
-        )
-        .map((x) => (
-          <option key={x.id} value={x.id}>
-            {x.id} - {x.first_name} {x.last_name}
-          </option>
-        ))}
-    </select>
-  ) : (
-    (() => {
-      const tl = users.find((x) => x.id === u.team_leader_id);
-      return tl ? `${tl.first_name} ${tl.last_name}` : "";
-    })()
-  )}
-</td>
 
-<td className="p-2">
-                        {isEdit ? <input className="border p-1 rounded w-24" value={editUser.pda_number ?? ""} onChange={(e) => setEditUser((s) => ({ ...s, pda_number: e.target.value }))} /> : (u.pda_number ?? "")}
+                      <td className="p-2">
+                        {isEdit && editUser.role === "agent" ? (
+                          <select
+                            className="border p-1 rounded"
+                            value={editUser.team_leader_id ?? ""}
+                            onChange={(e) => setEditUser((s) => ({ ...s, team_leader_id: e.target.value }))}
+                          >
+                            <option value="">(auto/fallback)</option>
+                            {users
+                              .filter(
+                                (x) =>
+                                  x.role === "team_lead" &&
+                                  String(x.division_id ?? "") === String(editUser.division_id ?? "")
+                              )
+                              .map((x) => (
+                                <option key={x.id} value={x.id}>
+                                  {x.id} - {x.first_name} {x.last_name}
+                                </option>
+                              ))}
+                          </select>
+                        ) : (
+                          (() => {
+                            const tl = users.find((x) => x.id === u.team_leader_id);
+                            return tl ? `${tl.first_name} ${tl.last_name}` : "";
+                          })()
+                        )}
                       </td>
+
+                      <td className="p-2">
+                        {isEdit ? (
+                          <input
+                            className="border p-1 rounded w-24"
+                            value={editUser.pda_number ?? ""}
+                            onChange={(e) => setEditUser((s) => ({ ...s, pda_number: e.target.value }))}
+                          />
+                        ) : (
+                          u.pda_number ?? ""
+                        )}
+                      </td>
+
                       <td className="p-2">{u.created_at ? new Date(u.created_at).toLocaleString() : ""}</td>
+
                       <td className="p-2">
                         {isEdit ? (
                           <div className="space-y-2">
-                            <input className="border p-1 rounded w-56" type="password" placeholder="Password i ri (ops.)" value={editUser.password} onChange={(e) => setEditUser((s) => ({ ...s, password: e.target.value }))} />
+                            <input
+                              className="border p-1 rounded w-56"
+                              type="password"
+                              placeholder="Password i ri (ops.)"
+                              value={editUser.password}
+                              onChange={(e) => setEditUser((s) => ({ ...s, password: e.target.value }))}
+                            />
                             <div className="flex gap-2">
                               <button
                                 className="px-3 py-1 rounded bg-black text-white"
@@ -1079,9 +1278,20 @@ export default function Admin() {
                                       team_leader_id: toNumOrNull(editUser.team_leader_id),
                                     };
                                     if (editUser.password?.trim()) payload.password = editUser.password.trim();
+
                                     await api.put(`/admin/users/${u.id}`, payload);
+
                                     setEditingId(null);
-                                    setEditUser({ first_name: "", last_name: "", email: "", password: "", role: "agent", division_id: "", pda_number: "", team_leader_id: "" });
+                                    setEditUser({
+                                      first_name: "",
+                                      last_name: "",
+                                      email: "",
+                                      password: "",
+                                      role: "agent",
+                                      division_id: "",
+                                      pda_number: "",
+                                      team_leader_id: "",
+                                    });
                                     await reloadAll();
                                   } catch (e) {
                                     const msg = e?.response?.data?.error || "Gabim gjatë ruajtjes.";
@@ -1091,11 +1301,21 @@ export default function Admin() {
                               >
                                 Ruaj
                               </button>
+
                               <button
                                 className="px-3 py-1 rounded border"
                                 onClick={() => {
                                   setEditingId(null);
-                                  setEditUser({ first_name: "", last_name: "", email: "", password: "", role: "agent", division_id: "", pda_number: "", team_leader_id: "" });
+                                  setEditUser({
+                                    first_name: "",
+                                    last_name: "",
+                                    email: "",
+                                    password: "",
+                                    role: "agent",
+                                    division_id: "",
+                                    pda_number: "",
+                                    team_leader_id: "",
+                                  });
                                 }}
                               >
                                 Anulo
@@ -1116,12 +1336,13 @@ export default function Admin() {
                                   role: u.role || "agent",
                                   division_id: u.division_id ? String(u.division_id) : "",
                                   pda_number: u.pda_number ?? "",
-                              team_leader_id: u.team_leader_id ?? "",
+                                  team_leader_id: u.team_leader_id ?? "",
                                 });
                               }}
                             >
                               Edit
                             </button>
+
                             <button
                               className="text-red-600 underline"
                               onClick={async () => {
