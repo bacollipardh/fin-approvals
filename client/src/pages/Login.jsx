@@ -1,6 +1,13 @@
 import { useState } from "react";
 import api from "../api";
 
+const ADMIN_MODULES = new Set(["dashboard", "divisions", "articles", "buyers", "sites", "users"]);
+
+function adminLandingPath() {
+    const saved = (localStorage.getItem("lastAdminModule") || "dashboard").toLowerCase();
+    return saved === "dashboard" || !ADMIN_MODULES.has(saved) ? "/admin" : `/admin/${saved}`;
+}
+
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -14,7 +21,7 @@ export default function Login() {
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", data.profile.role);
 
-            if (data.profile.role === 'admin') location.href = "/admin";
+            if (data.profile.role === 'admin') location.href = adminLandingPath();
             else if (data.profile.role === 'agent') location.href = "/agent";
             else location.href = "/approvals";
         } catch (ex) {
